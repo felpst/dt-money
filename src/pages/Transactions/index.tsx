@@ -1,59 +1,48 @@
-import { useEffect, useState } from "react";
+import { useContext, useEffect, useState } from "react";
 import { Header } from "../../components/Header";
 import { Summary } from "../../components/Summary";
+import { TransactionsContext } from "../../contexts/TransactionsContext";
+import { dateFormatter, priceFormatter } from "../../utils/formatter";
 import { SearchForm } from "./components/SerachForm";
-import { PriceHighlight, TransactionsContainer, TransactionsTable } from "./styles";
-
-interface Transaction {
-    id: number;
-    description: string;
-    type: 'income' | 'outcome';
-    price: number;
-    category: string;
-    createdAt: string;
-}
+import {
+  PriceHighlight,
+  TransactionsContainer,
+  TransactionsTable,
+} from "./styles";
 
 export function Transactions() {
-    const [transactions, setTransactions] = useState<Transaction[]>([]);
+  const { transactions } = useContext(TransactionsContext);
 
-    async function loadTransactions() {
-        const response = await fetch('http://localhost:3333/transactions')
-        const data = await response.json()
+  return (
+    <div>
+      <Header />
+      <Summary />
 
-        setTransactions(data)
-    }
+      <TransactionsContainer>
+        <SearchForm />
 
-    useEffect(() => {
-        loadTransactions()
-    }, [])
-
-    return (
-        <div>
-            <Header />
-            <Summary />
-
-            <TransactionsContainer>
-                <SearchForm />
-
-                <TransactionsTable>
-                    <tbody>
-                        {transactions.map(transaction => {
-                            return(
-                                <tr key={transaction.id}>
-                                    <td width='50%'>{transaction.description}</td>
-                                    <td>
-                                        <PriceHighlight variant={transaction.type}>
-                                            {transaction.price}
-                                        </PriceHighlight>
-                                    </td>
-                                    <td>{transaction.category}</td>
-                                    <td>{transaction.createdAt}</td>
-                                </tr>
-                            )
-                        })}
-                    </tbody>
-                </TransactionsTable>
-            </TransactionsContainer>
-        </div>
-    )
+        <TransactionsTable>
+          <tbody>
+            {transactions.map((transaction) => {
+              return (
+                <tr key={transaction.id}>
+                  <td width="50%">{transaction.description}</td>
+                  <td>
+                    <PriceHighlight variant={transaction.type}>
+                      {transaction.type === "outcome" && "- "}
+                      {priceFormatter.format(transaction.price)}
+                    </PriceHighlight>
+                  </td>
+                  <td>{transaction.category}</td>
+                  <td>
+                    {dateFormatter.format(new Date(transaction.createdAt))}
+                  </td>
+                </tr>
+              );
+            })}
+          </tbody>
+        </TransactionsTable>
+      </TransactionsContainer>
+    </div>
+  );
 }
